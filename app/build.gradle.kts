@@ -56,6 +56,10 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.negotiation)
+    implementation(libs.kotlin.serialization)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

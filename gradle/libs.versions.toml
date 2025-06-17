@@ -12,6 +12,7 @@ runtimeLivedata = "1.7.5"
 materialIcons = "1.6.7"
 navigationCompose = "2.8.2"
 kotlinSerialization = "1.7.3"
+ktor = "2.3.11"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -33,6 +34,10 @@ androidx-material-icons-core = { group = "androidx.compose.material", name = "ma
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIcons" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinSerialization" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+kotlin-serialization = {module = "io.ktor:ktor-serialization-kotlinx-json", version.ref="ktor"}
 
 
 [plugins]

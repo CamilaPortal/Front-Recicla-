@@ -1,13 +1,13 @@
 package com.example.appreciclaje.viewmodel
 
-import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import androidx.lifecycle.viewModelScope
+import com.example.appreciclaje.data.api.LoginApi
+import com.example.appreciclaje.network.SessionManager
+import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
 
@@ -24,6 +24,9 @@ class LoginViewModel : ViewModel() {
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading : LiveData<Boolean> = _isLoading
 
+    private val _error = MutableLiveData<String?>(null)
+    val error: LiveData<String?> = _error
+
 
     fun onLoginChanged(email: String, password: String) {
         _email.value = email
@@ -36,11 +39,36 @@ class LoginViewModel : ViewModel() {
     private fun isValidEmail(email: String): Boolean =Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
     suspend fun onLoginSelected(navigate: () -> Unit) {
-        _isLoading.value = true
-        delay(4000)
-        _isLoading.value = false
-        withContext(Dispatchers.Main) {
-            navigate()
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _error.value = null
+
+                val result = LoginApi.login(
+                    email = _email.value ?: "",
+                    password = _password.value ?: ""
+                )
+
+                result.fold(
+                    onSuccess = { response ->
+                        SessionManager.saveLoginData(
+                            token = response.access_token,
+                            dni = response.dni,
+                            email = response.email,
+                            rol = response.rol
+                        )
+                        _isLoading.value = false
+                        navigate()
+                    },
+                    onFailure = { exception ->
+                        _isLoading.value = false
+                        _error.value = exception.message
+                    }
+                )
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _error.value = "Error inesperado: ${e.message}"
+            }
         }
     }
 }

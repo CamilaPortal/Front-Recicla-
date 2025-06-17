@@ -69,6 +69,7 @@ fun Login(modifier: Modifier, viewModel: LoginViewModel, onLoginSuccess: () -> U
     val password: String by viewModel.password.observeAsState(initial = "")
     val loginEnable: Boolean by viewModel.loginEnable.observeAsState(initial = false)
     val isLoading: Boolean by viewModel.isLoading.observeAsState(initial = false)
+    val error: String? by viewModel.error.observeAsState(null)
     val coroutineScope = rememberCoroutineScope()
 
     if (isLoading) {
@@ -82,6 +83,16 @@ fun Login(modifier: Modifier, viewModel: LoginViewModel, onLoginSuccess: () -> U
             EmailField(email, {viewModel.onLoginChanged(it, password)})
             Spacer(modifier = Modifier.padding(4.dp))
             PasswordField(password) { viewModel.onLoginChanged(email, it) }
+            Spacer(modifier = Modifier.padding(4.dp))
+            if (error != null) {
+                Text(
+                    text = error!!,
+                    color = Color.Red,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+            }
             Spacer(modifier = Modifier.padding(8.dp))
             RegisterText(onNavigateToRegister)
             Spacer(modifier = Modifier.padding(8.dp))

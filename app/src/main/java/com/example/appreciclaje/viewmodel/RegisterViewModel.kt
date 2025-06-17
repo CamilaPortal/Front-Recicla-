@@ -4,8 +4,11 @@ import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.appreciclaje.data.api.RegisterApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class RegisterViewModel : ViewModel() {
@@ -36,6 +39,9 @@ class RegisterViewModel : ViewModel() {
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>(null)
+    val error: LiveData<String?> = _error
 
     fun onRegisterFieldsChanged(
         dni: String,
@@ -73,11 +79,44 @@ class RegisterViewModel : ViewModel() {
     private fun isValidPassword(password: String): Boolean = password.isNotBlank() && password.length > 5
 
     suspend fun onRegisterSelected(navigateOnSuccess: () -> Unit) {
-        _isLoading.value = true
-        delay(2000)
-        _isLoading.value = false
-        withContext(Dispatchers.Main) {
-            navigateOnSuccess()
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _error.value = null
+
+                val dniInt = _dni.value?.toIntOrNull() ?: 0
+                if (dniInt <= 0) {
+                    _error.value = "DNI inválido"
+                    _isLoading.value = false
+                    return@launch
+                }
+
+                val result = RegisterApi.register(
+                    dni = dniInt,
+                    nombre = _nombre.value ?: "",
+                    apellido = _apellido.value ?: "",
+                    alias = _alias.value ?: "",
+                    telefono = _telefono.value ?: "",
+                    email = _email.value ?: "",
+                    password = _password.value ?: ""
+                )
+
+                result.fold(
+                    onSuccess = {
+                        _isLoading.value = false
+                        withContext(Dispatchers.Main) {
+                            navigateOnSuccess()
+                        }
+                    },
+                    onFailure = { exception ->
+                        _isLoading.value = false
+                        _error.value = exception.message
+                    }
+                )
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _error.value = "Error inesperado: ${e.message}"
+            }
         }
     }
 }
