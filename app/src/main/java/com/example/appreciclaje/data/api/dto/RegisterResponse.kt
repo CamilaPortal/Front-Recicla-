@@ -1,4 +1,4 @@
-package com.example.appreciclaje.data.api.DTO
+package com.example.appreciclaje.data.api.dto
 
 import kotlinx.serialization.Serializable
 

@@ -1,8 +1,8 @@
 package com.example.appreciclaje.data.api
 
 import android.util.Log
-import com.example.appreciclaje.data.api.DTO.LoginRequest
-import com.example.appreciclaje.data.api.DTO.LoginResponse
+import com.example.appreciclaje.data.api.dto.LoginRequest
+import com.example.appreciclaje.data.api.dto.LoginResponse
 import com.example.appreciclaje.network.NetworkUtils
 import com.example.appreciclaje.network.UrlConfig
 import io.ktor.client.call.body
