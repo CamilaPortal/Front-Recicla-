@@ -14,6 +14,7 @@ import com.example.appreciclaje.ui.components.BottomNavigationBar
 import com.example.appreciclaje.ui.screens.LoginScreen
 import com.example.appreciclaje.ui.screens.RegisterScreen
 import com.example.appreciclaje.ui.screens.HomeScreen
+import com.example.appreciclaje.ui.screens.ActivityScreen
 import com.example.appreciclaje.viewmodel.LoginViewModel
 import com.example.appreciclaje.viewmodel.RegisterViewModel
 
@@ -79,7 +80,7 @@ fun NavigationWrapper() {
                 // ExchangeScreen()
             }
             composable(AppScreens.Activity.route) {
-                // ActivityScreen()
+                ActivityScreen()
             }
         }
     }

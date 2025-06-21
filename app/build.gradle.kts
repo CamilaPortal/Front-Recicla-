@@ -15,6 +15,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        multiDexEnabled= true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -60,6 +61,7 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.negotiation)
     implementation(libs.kotlin.serialization)
+    implementation(libs.androidx.multidex)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

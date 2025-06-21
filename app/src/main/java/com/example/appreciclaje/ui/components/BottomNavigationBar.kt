@@ -1,7 +1,11 @@
 package com.example.appreciclaje.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -14,10 +18,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.appreciclaje.core.navigation.AppScreens
-import androidx.compose.material.icons.filled.Leaderboard
-import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.History
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {

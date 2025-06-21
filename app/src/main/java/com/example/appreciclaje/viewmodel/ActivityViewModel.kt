@@ -14,13 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class HomeViewModel : ViewModel() {
-    private val _userName = MutableLiveData<String>()
-    val userName: LiveData<String> = _userName
-
-    private val _userPoints = MutableLiveData<Int>()
-    val userPoints: LiveData<Int> = _userPoints
-
+class ActivityViewModel : ViewModel() {
     private val _userMovements = MutableLiveData<List<UserMovement>>()
     val userMovements: LiveData<List<UserMovement>> = _userMovements
 
@@ -31,53 +25,28 @@ class HomeViewModel : ViewModel() {
     val error: LiveData<String?> = _error
 
     init {
-        loadUserData()
+        loadMovementsHistory()
     }
 
-    fun loadUserData() {
+    fun loadMovementsHistory() {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
                 _error.value = null
 
-                val userDataResult = HistorialApi.getUserData()
+                val reciclajesResult = HistorialApi.getHistorialReciclaje()
+                val reciclajes = reciclajesResult.getOrNull() ?: emptyList()
 
-                if (userDataResult.isSuccess) {
-                    val userData = userDataResult.getOrNull()
-                    _userName.value = userData?.nombre ?: ""
-                    _userPoints.value = userData?.puntos_disponibles ?: 0
+                val canjesResult = HistorialApi.getHistorialCanje()
+                val canjes = canjesResult.getOrNull() ?: emptyList()
 
-                    loadMovementsHistory()
-                } else {
-                    _error.value = userDataResult.exceptionOrNull()?.message
-                    _userName.value = ""
-                    _userPoints.value = 0
-                    _userMovements.value = emptyList()
-                }
-
+                _userMovements.value = combineMovements(reciclajes, canjes)
                 _isLoading.value = false
             } catch (e: Exception) {
                 _isLoading.value = false
-                _error.value = "Error al cargar datos: ${e.message}"
-                _userName.value = ""
-                _userPoints.value = 0
+                _error.value = "Error al cargar historial: ${e.message}"
                 _userMovements.value = emptyList()
             }
-        }
-    }
-
-    private suspend fun loadMovementsHistory() {
-        try {
-            val reciclajesResult = HistorialApi.getHistorialReciclaje()
-            val reciclajes = reciclajesResult.getOrNull() ?: emptyList()
-
-            val canjesResult = HistorialApi.getHistorialCanje()
-            val canjes = canjesResult.getOrNull() ?: emptyList()
-
-            _userMovements.value = combineMovements(reciclajes, canjes)
-        } catch (e: Exception) {
-            _error.value = "Error al cargar historial: ${e.message}"
-            _userMovements.value = emptyList()
         }
     }
 
@@ -85,7 +54,7 @@ class HomeViewModel : ViewModel() {
         reciclajes: List<ReciclajeHistorialResponse>,
         canjes: List<HistorialCanjeResponse>
     ): List<UserMovement> {
-        Log.d("HomeViewModel", "Procesando ${reciclajes.size} reciclajes y ${canjes.size} canjes")
+        Log.d("ActivityViewModel", "Procesando ${reciclajes.size} reciclajes y ${canjes.size} canjes")
 
         val formatters = listOf(
             SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()),
@@ -112,7 +81,7 @@ class HomeViewModel : ViewModel() {
                     )
                 )
             } catch (e: Exception) {
-                Log.e("HomeViewModel", "Error al procesar reciclaje: ${reciclaje.id}", e)
+                Log.e("ActivityViewModel", "Error al procesar reciclaje: ${reciclaje.id}", e)
             }
         }
 
@@ -132,17 +101,13 @@ class HomeViewModel : ViewModel() {
                     )
                 )
             } catch (e: Exception) {
-                Log.e("HomeViewModel", "Error al procesar canje: ${canje.id}", e)
+                Log.e("ActivityViewModel", "Error al procesar canje: ${canje.id}", e)
             }
         }
 
-        val result = combinedMovements
+        return combinedMovements
             .sortedByDescending { it.first }
-            .take(5)
             .map { it.second }
-
-        Log.d("HomeViewModel", "Total de movimientos combinados: ${result.size}")
-        return result
     }
 
     private fun parseDate(dateString: String, formatters: List<SimpleDateFormat>): Date? {
@@ -152,7 +117,7 @@ class HomeViewModel : ViewModel() {
             } catch (e: Exception) {
             }
         }
-        Log.w("HomeViewModel", "No se pudo parsear la fecha: $dateString")
+        Log.w("ActivityViewModel", "No se pudo parsear la fecha: $dateString")
         return null
     }
 }

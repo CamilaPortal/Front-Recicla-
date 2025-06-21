@@ -13,3 +13,4 @@ sealed class AppScreens(val route: String) {
 typealias Login = AppScreens.Login
 typealias Register = AppScreens.Register
 typealias Home = AppScreens.Home
+typealias Activity = AppScreens.Activity
