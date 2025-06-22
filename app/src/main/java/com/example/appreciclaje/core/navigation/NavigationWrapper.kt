@@ -15,9 +15,12 @@ import com.example.appreciclaje.ui.screens.LoginScreen
 import com.example.appreciclaje.ui.screens.RegisterScreen
 import com.example.appreciclaje.ui.screens.HomeScreen
 import com.example.appreciclaje.ui.screens.ActivityScreen
+import com.example.appreciclaje.ui.screens.QrScannerScreen
 import com.example.appreciclaje.viewmodel.LoginViewModel
 import com.example.appreciclaje.viewmodel.RegisterViewModel
+import androidx.camera.core.ExperimentalGetImage
 
+@ExperimentalGetImage
 @Composable
 fun NavigationWrapper() {
     val navController = rememberNavController()
@@ -74,7 +77,8 @@ fun NavigationWrapper() {
                 // RankingScreen()
             }
             composable(AppScreens.QR.route) {
-                // QRScreen()
+
+                QrScannerScreen()
             }
             composable(AppScreens.Exchange.route) {
                 // ExchangeScreen()

@@ -14,3 +14,5 @@ typealias Login = AppScreens.Login
 typealias Register = AppScreens.Register
 typealias Home = AppScreens.Home
 typealias Activity = AppScreens.Activity
+//typealias Ranking = AppScreens.Ranking
+typealias QR = AppScreens.QR
