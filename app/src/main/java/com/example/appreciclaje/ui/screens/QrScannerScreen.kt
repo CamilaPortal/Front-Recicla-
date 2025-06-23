@@ -29,6 +29,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Color
+import com.example.appreciclaje.viewmodel.ScanState
 import androidx.compose.ui.platform.LocalContext
 
 @ExperimentalGetImage
@@ -37,6 +50,7 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scannedCode by viewModel.scannedCode.collectAsState()
+    val scanState by viewModel.scanState.collectAsState()
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -58,6 +72,7 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
         if (!hasCameraPermission) {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
+        viewModel.checkSession()
     }
 
     val cameraController = remember {
@@ -67,7 +82,7 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
         }
     }
 
-    if (hasCameraPermission) {
+    if (hasCameraPermission && (scanState == ScanState.Idle || scanState == ScanState.Scanning)) {
         LaunchedEffect(true) {
             val options = BarcodeScannerOptions.Builder()
                 .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
@@ -87,7 +102,6 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
                                     for (barcode in barcodes) {
                                         barcode.rawValue?.let {
                                             viewModel.onCodeScanned(it)
-                                            Log.d("QRScanner", "Código escaneado: $it")
                                         }
                                     }
                                 }
@@ -119,26 +133,144 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
         Spacer(modifier = Modifier.height(40.dp))
 
         if (hasCameraPermission) {
-            AndroidView(
-                factory = { ctx ->
-                    PreviewView(ctx).apply {
-                        scaleType = PreviewView.ScaleType.FILL_CENTER
-                        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                        controller = cameraController
-                        cameraController.bindToLifecycle(lifecycleOwner)
+            when (scanState) {
+                is ScanState.Idle, is ScanState.Scanning -> {
+                    AndroidView(
+                        factory = { ctx ->
+                            PreviewView(ctx).apply {
+                                scaleType = PreviewView.ScaleType.FILL_CENTER
+                                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                                controller = cameraController
+                                cameraController.bindToLifecycle(lifecycleOwner)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(400.dp)
+                    )
+                }
+                is ScanState.TokenExtracted -> {
+                    val token = (scanState as ScanState.TokenExtracted).token
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.QrCode,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "¡Código QR escaneado!",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = "Token: $token")
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                Button(
+                                    onClick = { viewModel.clearCode() },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    )
+                                ) {
+                                    Text("Cancelar")
+                                }
+                                Button(onClick = { viewModel.confirmScan() }) {
+                                    Text("Confirmar reciclaje")
+                                }
+                            }
+                        }
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(400.dp)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            if (scannedCode != null) {
-                Text("Código escaneado: $scannedCode", color = MaterialTheme.colorScheme.primary)
-                Button(onClick = { viewModel.clearCode() }) {
-                    Text("Escanear otro")
+                }
+                is ScanState.Sending -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(400.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                is ScanState.Success -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(400.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.CheckCircle,
+                                    contentDescription = null,
+                                    tint = Color(0xFF4CAE50),
+                                    modifier = Modifier.size(64.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "¡Reciclaje confirmado exitosamente!",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(onClick = { viewModel.clearCode() }) {
+                                    Text("Escanear otro código")
+                                }
+                            }
+                        }
+                    }
+                }
+                is ScanState.Error -> {
+                    val errorMessage = (scanState as ScanState.Error).message
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Error,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Error",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = errorMessage)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = { viewModel.clearCode() }) {
+                                Text("Intentar nuevamente")
+                            }
+                        }
+                    }
                 }
             }
         } else {
