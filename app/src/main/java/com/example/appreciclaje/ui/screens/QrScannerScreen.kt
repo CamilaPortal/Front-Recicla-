@@ -43,6 +43,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.Color
 import com.example.appreciclaje.viewmodel.ScanState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 
 @ExperimentalGetImage
 @Composable
@@ -230,7 +231,9 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
                                     text = "¡Reciclaje confirmado exitosamente!",
-                                    style = MaterialTheme.typography.titleMedium
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Button(onClick = { viewModel.clearCode() }) {
@@ -242,32 +245,47 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
                 }
                 is ScanState.Error -> {
                     val errorMessage = (scanState as ScanState.Error).message
-                    Card(
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            .height(400.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Filled.Error,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(48.dp)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Error",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(text = errorMessage)
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(onClick = { viewModel.clearCode() }) {
-                                Text("Intentar nuevamente")
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Error,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "Error",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = errorMessage,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(onClick = { viewModel.clearCode() }) {
+                                    Text("Intentar nuevamente")
+                                }
                             }
                         }
                     }
