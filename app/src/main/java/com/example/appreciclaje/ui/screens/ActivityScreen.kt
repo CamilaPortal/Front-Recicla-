@@ -1,12 +1,17 @@
 package com.example.appreciclaje.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -19,17 +24,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appreciclaje.data.api.dto.UserMovement
 import com.example.appreciclaje.viewmodel.ActivityViewModel
+import com.example.appreciclaje.viewmodel.MovementFilterType
 
 @Composable
 fun ActivityScreen(viewModel: ActivityViewModel = viewModel()) {
     val userMovements by viewModel.userMovements.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.observeAsState(false)
     val error by viewModel.error.observeAsState(null)
+    val filterType by viewModel.filterType.observeAsState(MovementFilterType.ALL)
 
     Box(
         modifier = Modifier
@@ -47,6 +55,11 @@ fun ActivityScreen(viewModel: ActivityViewModel = viewModel()) {
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
                 modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            FilterButtons(
+                selectedFilter = filterType,
+                onFilterSelected = { viewModel.setFilter(it) }
             )
 
             if (isLoading) {
@@ -68,6 +81,67 @@ fun ActivityScreen(viewModel: ActivityViewModel = viewModel()) {
 }
 
 @Composable
+fun FilterButtons(
+    selectedFilter: MovementFilterType,
+    onFilterSelected: (MovementFilterType) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FilterButton(
+            text = "Todos",
+            isSelected = selectedFilter == MovementFilterType.ALL,
+            onClick = { onFilterSelected(MovementFilterType.ALL) },
+            modifier = Modifier.weight(1f)
+        )
+        FilterButton(
+            text = "Reciclajes",
+            isSelected = selectedFilter == MovementFilterType.RECYCLING,
+            onClick = { onFilterSelected(MovementFilterType.RECYCLING) },
+            modifier = Modifier.weight(1f)
+        )
+        FilterButton(
+            text = "Canjes",
+            isSelected = selectedFilter == MovementFilterType.EXCHANGE,
+            onClick = { onFilterSelected(MovementFilterType.EXCHANGE) },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+fun FilterButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val activeColor = Color(0xFF4CAE50)
+    val inactiveColor = Color.LightGray
+    val activeTextColor = Color.White
+    val inactiveTextColor = Color.Black
+
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isSelected) activeColor else inactiveColor
+        )
+    ) {
+        Text(
+            text = text,
+            color = if (isSelected) activeTextColor else inactiveTextColor,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 13.sp
+        )
+    }
+}
+
+@Composable
 fun ActivityList(movements: List<UserMovement>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -84,9 +158,13 @@ fun ActivityList(movements: List<UserMovement>) {
             if (movements.isEmpty()) {
                 item {
                     Text(
-                        text = "No hay movimientos registrados",
+                        text = "No hay movimientos para este filtro",
                         fontSize = 16.sp,
-                        color = Color.Gray
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     )
                 }
             } else {

@@ -14,6 +14,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+enum class MovementFilterType {
+    ALL,
+    RECYCLING,
+    EXCHANGE
+}
+
 class ActivityViewModel : ViewModel() {
     private val _userMovements = MutableLiveData<List<UserMovement>>()
     val userMovements: LiveData<List<UserMovement>> = _userMovements
@@ -24,8 +30,20 @@ class ActivityViewModel : ViewModel() {
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
 
+    private val _filterType = MutableLiveData(MovementFilterType.ALL)
+    val filterType: LiveData<MovementFilterType> = _filterType
+
+    private var allMovements = listOf<UserMovement>()
+
     init {
         loadMovementsHistory()
+    }
+
+    fun setFilter(filter: MovementFilterType) {
+        if (_filterType.value != filter) {
+            _filterType.value = filter
+            applyFilter()
+        }
     }
 
     fun loadMovementsHistory() {
@@ -40,13 +58,23 @@ class ActivityViewModel : ViewModel() {
                 val canjesResult = HistorialApi.getHistorialCanje()
                 val canjes = canjesResult.getOrNull() ?: emptyList()
 
-                _userMovements.value = combineMovements(reciclajes, canjes)
+                allMovements = combineMovements(reciclajes, canjes)
+                applyFilter()
                 _isLoading.value = false
             } catch (e: Exception) {
                 _isLoading.value = false
                 _error.value = "Error al cargar historial: ${e.message}"
+                allMovements = emptyList()
                 _userMovements.value = emptyList()
             }
+        }
+    }
+
+    private fun applyFilter() {
+        _userMovements.value = when (_filterType.value) {
+            MovementFilterType.RECYCLING -> allMovements.filter { it.isPositive }
+            MovementFilterType.EXCHANGE -> allMovements.filter { !it.isPositive }
+            else -> allMovements
         }
     }
 
