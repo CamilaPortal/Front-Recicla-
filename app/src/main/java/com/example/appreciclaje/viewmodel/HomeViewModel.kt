@@ -9,6 +9,7 @@ import com.example.appreciclaje.data.api.dto.HistorialCanjeResponse
 import com.example.appreciclaje.data.api.dto.ReciclajeHistorialResponse
 import com.example.appreciclaje.data.api.dto.UserMovement
 import com.example.appreciclaje.data.api.HistorialApi
+import com.example.appreciclaje.network.SessionManager
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -30,8 +31,21 @@ class HomeViewModel : ViewModel() {
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
 
+    private val _navigateToLogin = MutableLiveData<Boolean>()
+    val navigateToLogin: LiveData<Boolean> = _navigateToLogin
+
     init {
         loadUserData()
+        _navigateToLogin.value = false
+    }
+
+    fun logout() {
+        SessionManager.clearSession()
+        _navigateToLogin.value = true
+    }
+
+    fun onLoginNavigated() {
+        _navigateToLogin.value = false
     }
 
     fun loadUserData() {

@@ -31,12 +31,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(
+    viewModel: HomeViewModel = viewModel(),
+    onLogout: () -> Unit
+) {
     val userName by viewModel.userName.observeAsState("")
     val userPoints by viewModel.userPoints.observeAsState(0)
     val userMovements by viewModel.userMovements.observeAsState(emptyList())
+    val navigateToLogin by viewModel.navigateToLogin.observeAsState(false)
+
+    LaunchedEffect(navigateToLogin) {
+        if (navigateToLogin) {
+            onLogout()
+            viewModel.onLoginNavigated()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -48,7 +62,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Greeting(userName)
+            Greeting(userName, onLogoutClick = { viewModel.logout() })
             Spacer(modifier = Modifier.height(16.dp))
             PointsCard(userPoints)
             Spacer(modifier = Modifier.height(16.dp))
@@ -58,9 +72,10 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
 }
 
 @Composable
-fun Greeting(userName: String) {
+fun Greeting(userName: String, onLogoutClick: () -> Unit) {
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Box(
             modifier = Modifier
@@ -89,6 +104,16 @@ fun Greeting(userName: String) {
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
+            )
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        IconButton(onClick = onLogoutClick) {
+            Icon(
+                imageVector = Icons.Default.Logout,
+                contentDescription = "Cerrar Sesión",
+                tint = Color.Gray
             )
         }
     }

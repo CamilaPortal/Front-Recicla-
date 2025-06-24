@@ -72,8 +72,19 @@ fun NavigationWrapper() {
                 )
             }
             composable(AppScreens.Home.route) {
-                HomeScreen()
+                HomeScreen(
+                    onLogout = {
+                        navController.navigate(AppScreens.Login.route) {
+                            // Limpia toda la pila de navegación hasta el inicio del grafo.
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
+
             composable(AppScreens.Ranking.route) {
                 RankingHistoricoScreen()
             }
