@@ -16,6 +16,7 @@ import com.example.appreciclaje.ui.screens.RegisterScreen
 import com.example.appreciclaje.ui.screens.HomeScreen
 import com.example.appreciclaje.ui.screens.ActivityScreen
 import com.example.appreciclaje.ui.screens.QrScannerScreen
+import com.example.appreciclaje.ui.screens.RankingHistoricoScreen
 import com.example.appreciclaje.viewmodel.LoginViewModel
 import com.example.appreciclaje.viewmodel.RegisterViewModel
 import androidx.camera.core.ExperimentalGetImage
@@ -74,7 +75,7 @@ fun NavigationWrapper() {
                 HomeScreen()
             }
             composable(AppScreens.Ranking.route) {
-                // RankingScreen()
+                RankingHistoricoScreen()
             }
             composable(AppScreens.QR.route) {
 
