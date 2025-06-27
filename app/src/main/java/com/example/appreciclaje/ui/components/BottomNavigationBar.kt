@@ -25,7 +25,7 @@ fun BottomNavigationBar(navController: NavController) {
         NavItem("Inicio", Icons.Default.Home, AppScreens.Home),
         NavItem("Ranking", Icons.Default.Leaderboard, AppScreens.Ranking),
         NavItem("QR", Icons.Default.QrCode, AppScreens.QR),
-        NavItem("Canjes", Icons.Default.CardGiftcard, AppScreens.Exchange),
+        NavItem("Canjes", Icons.Default.CardGiftcard, AppScreens.Canjes),
         NavItem("Actividad", Icons.Default.History, AppScreens.Activity)
     )
 

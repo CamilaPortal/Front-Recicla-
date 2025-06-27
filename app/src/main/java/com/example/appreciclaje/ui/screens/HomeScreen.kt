@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.LaunchedEffect
@@ -111,7 +112,7 @@ fun Greeting(userName: String, onLogoutClick: () -> Unit) {
 
         IconButton(onClick = onLogoutClick) {
             Icon(
-                imageVector = Icons.Default.Logout,
+                imageVector = Icons.AutoMirrored.Filled.Logout,
                 contentDescription = "Cerrar Sesión",
                 tint = Color.Gray
             )

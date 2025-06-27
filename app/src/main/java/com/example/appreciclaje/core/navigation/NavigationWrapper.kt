@@ -17,6 +17,7 @@ import com.example.appreciclaje.ui.screens.HomeScreen
 import com.example.appreciclaje.ui.screens.ActivityScreen
 import com.example.appreciclaje.ui.screens.QrScannerScreen
 import com.example.appreciclaje.ui.screens.RankingHistoricoScreen
+import com.example.appreciclaje.ui.screens.CanjesScreen
 import com.example.appreciclaje.viewmodel.LoginViewModel
 import com.example.appreciclaje.viewmodel.RegisterViewModel
 import androidx.camera.core.ExperimentalGetImage
@@ -75,7 +76,6 @@ fun NavigationWrapper() {
                 HomeScreen(
                     onLogout = {
                         navController.navigate(AppScreens.Login.route) {
-                            // Limpia toda la pila de navegación hasta el inicio del grafo.
                             popUpTo(navController.graph.id) {
                                 inclusive = true
                             }
@@ -92,8 +92,8 @@ fun NavigationWrapper() {
 
                 QrScannerScreen()
             }
-            composable(AppScreens.Exchange.route) {
-                // ExchangeScreen()
+            composable(AppScreens.Canjes.route) {
+                CanjesScreen()
             }
             composable(AppScreens.Activity.route) {
                 ActivityScreen()

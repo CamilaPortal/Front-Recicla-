@@ -6,7 +6,7 @@ sealed class AppScreens(val route: String) {
     object Home : AppScreens("home")
     object Ranking : AppScreens("ranking")
     object QR : AppScreens("qr")
-    object Exchange : AppScreens("exchange")
+    object Canjes : AppScreens("canjes")
     object Activity : AppScreens("activity")
 }
 
@@ -16,3 +16,4 @@ typealias Home = AppScreens.Home
 typealias Activity = AppScreens.Activity
 typealias Ranking = AppScreens.Ranking
 typealias QR = AppScreens.QR
+typealias Canjes = AppScreens.Canjes
