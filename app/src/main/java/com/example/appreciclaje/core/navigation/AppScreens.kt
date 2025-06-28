@@ -8,6 +8,10 @@ sealed class AppScreens(val route: String) {
     object QR : AppScreens("qr")
     object Canjes : AppScreens("canjes")
     object Activity : AppScreens("activity")
+    object EmpresaHome : AppScreens("empresa_home")
+    object ValidarCanjes : AppScreens("validar_canjes")
+    object AdministrarCanjes : AppScreens("administrar_canjes")
+    object EmpresaProfile : AppScreens("empresa_profile")
 }
 
 typealias Login = AppScreens.Login
