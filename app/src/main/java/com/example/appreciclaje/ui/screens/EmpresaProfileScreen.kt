@@ -55,7 +55,7 @@ fun EmpresaProfileScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Mi Perfil", color = Color.White) },
+                title = { Text("Mi perfil", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = Color.White)
@@ -113,7 +113,7 @@ fun UserInfoCard(userInfo: UsuarioInfo) {
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Información de Usuario", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text("Información de usuario", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(8.dp))
             InfoRow("Nombre:", "${userInfo.nombre} ${userInfo.apellido}")
             InfoRow("Alias:", userInfo.alias)
@@ -132,12 +132,12 @@ fun EmpresaInfoCard(empresaInfo: EmpresaInfo) {
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Información de la Empresa", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text("Información de la empresa", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(8.dp))
             InfoRow("Nombre:", empresaInfo.nombre)
             InfoRow("Descripción:", empresaInfo.descripcion)
             InfoRow("Dirección:", empresaInfo.direccion)
-            InfoRow("Email de Contacto:", empresaInfo.email)
+            InfoRow("Email de contacto:", empresaInfo.email)
             InfoRow("Teléfono:", empresaInfo.telefono.toString())
         }
     }
@@ -169,13 +169,13 @@ fun ChangePasswordCard(isLoading: Boolean, onConfirm: (String, String, String) -
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Cambiar Contraseña", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text("Cambiar contraseña", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.Black)
             AnimatedVisibility(visible = expanded) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 16.dp)) {
                     OutlinedTextField(
                         value = currentPassword,
                         onValueChange = { currentPassword = it },
-                        label = { Text("Contraseña Actual") },
+                        label = { Text("Contraseña actual") },
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (currentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -190,7 +190,7 @@ fun ChangePasswordCard(isLoading: Boolean, onConfirm: (String, String, String) -
                     OutlinedTextField(
                         value = newPassword,
                         onValueChange = { newPassword = it },
-                        label = { Text("Nueva Contraseña") },
+                        label = { Text("Nueva contraseña") },
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -205,7 +205,7 @@ fun ChangePasswordCard(isLoading: Boolean, onConfirm: (String, String, String) -
                     OutlinedTextField(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
-                        label = { Text("Confirmar Nueva Contraseña") },
+                        label = { Text("Confirmar nueva contraseña") },
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -231,7 +231,7 @@ fun ChangePasswordCard(isLoading: Boolean, onConfirm: (String, String, String) -
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Cambiar Contraseña", color = Color.White)
+                            Text("Cambiar contraseña", color = Color.White)
                         }
                     }
                 }

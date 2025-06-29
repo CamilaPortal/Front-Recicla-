@@ -77,7 +77,7 @@ fun ValidarCanjesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Validar Canje", color = Color.White) },
+                title = { Text("Validar canje", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = Color.White)
@@ -136,7 +136,7 @@ fun ValidarCanjesScreen(
                                     disabledContainerColor = Color.Gray
                                 )
                             ) {
-                                Text("Validar Código", color = Color.White)
+                                Text("Validar código", color = Color.White)
                             }
                         }
                     }
@@ -231,7 +231,7 @@ private fun ValidationSuccessView(data: ValidarQrResponse, onConfirm: () -> Unit
         Text(data.message, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center, color = Color.Black)
 
         data.canje_info?.let {
-            InfoCard(title = "Detalles del Canje") {
+            InfoCard(title = "Detalles del canje") {
                 ValidationInfoRow("Premio:", it.premio)
                 ValidationInfoRow("Puntos:", it.puntos_usados.toString())
                 ValidationInfoRow("Vencimiento:", it.fecha_vencimiento)
@@ -260,10 +260,10 @@ private fun ValidationSuccessView(data: ValidarQrResponse, onConfirm: () -> Unit
             onClick = onConfirm,
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAE50))
         ) {
-            Text("Confirmar Entrega", color = Color.White)
+            Text("Confirmar entrega", color = Color.White)
         }
         Button(onClick = onScanAnother, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)) {
-            Text("Escanear Otro", color = Color.White)
+            Text("Escanear otro", color = Color.White)
         }
     }
 }
@@ -281,7 +281,7 @@ private fun ConfirmationSuccessView(data: ConfirmarEntregaResponse, onFinish: ()
         Text(data.message, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center, color = Color.Black)
 
         data.entrega_confirmada?.let {
-            InfoCard(title = "Resumen de Entrega") {
+            InfoCard(title = "Resumen de entrega") {
                 ValidationInfoRow("Premio:", it.premio)
                 ValidationInfoRow("Usuario:", it.usuario)
                 ValidationInfoRow("DNI:", it.dni_usuario.toString())
