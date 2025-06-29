@@ -112,18 +112,13 @@ fun NavigationWrapper() {
                 )
             }
             composable(AppScreens.ValidarCanjes.route) {
-                // Placeholder Screen
                 ValidarCanjesScreen(navController = navController)
 
             }
             composable(AppScreens.AdministrarCanjes.route) {
-                // Placeholder Screen
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Administrar Canjes Screen")
-                }
+                AdministrarCanjesScreen(navController = navController)
             }
             composable(AppScreens.EmpresaProfile.route) {
-                // Placeholder Screen
                 EmpresaProfileScreen(navController = navController)
             }
             composable(AppScreens.Ranking.route) {

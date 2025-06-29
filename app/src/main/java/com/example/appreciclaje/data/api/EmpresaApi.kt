@@ -1,6 +1,8 @@
 package com.example.appreciclaje.data.api
 
 import android.util.Log
+import com.example.appreciclaje.data.api.dto.ActualizarEstadoRequest
+import com.example.appreciclaje.data.api.dto.ActualizarPuntosRequest
 import com.example.appreciclaje.data.api.dto.ChangePasswordRequest
 import com.example.appreciclaje.data.api.dto.ConfirmarEntregaRequest
 import com.example.appreciclaje.data.api.dto.ConfirmarEntregaResponse
@@ -8,6 +10,8 @@ import com.example.appreciclaje.data.api.dto.EmpresaProfileResponse
 import com.example.appreciclaje.data.api.dto.ErrorValidarResponse
 import com.example.appreciclaje.data.api.dto.ValidarQrRequest
 import com.example.appreciclaje.data.api.dto.ValidarQrResponse
+import com.example.appreciclaje.data.api.dto.CanjesEmpresaResponse
+import com.example.appreciclaje.data.api.dto.CrearCanjeRequest
 import com.example.appreciclaje.network.NetworkUtils
 import com.example.appreciclaje.network.SessionManager
 import com.example.appreciclaje.network.UrlConfig
@@ -142,6 +146,101 @@ object EmpresaApi {
             } catch (e: Exception) {
                 Log.e(TAG, "Excepción en confirmarEntrega", e)
                 Result.failure(Exception("Error de conexión. Inténtalo más tarde."))
+            }
+        }
+    }
+
+    suspend fun getMisCanjes(): Result<List<CanjesEmpresaResponse>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val token = SessionManager.getToken()
+                if (token.isNullOrEmpty()) {
+                    return@withContext Result.failure(Exception("No hay sesión activa"))
+                }
+
+                val httpResponse = NetworkUtils.httpClient.get("${UrlConfig.BASE_URL}/canjes/mi-empresa/") {
+                    header("Authorization", "Bearer $token")
+                }
+
+                if (httpResponse.status.isSuccess()) {
+                    val response = httpResponse.body<List<CanjesEmpresaResponse>>()
+                    Result.success(response)
+                } else {
+                    Log.e(TAG, "Error al obtener mis canjes: ${httpResponse.status}")
+                    Result.failure(Exception("Error al obtener los canjes de la empresa."))
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Excepción en getMisCanjes", e)
+                Result.failure(Exception("Error de conexión. Inténtalo más tarde."))
+            }
+        }
+    }
+
+    suspend fun actualizarPuntosCanje(canjeId: Int, puntos: Int): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val token = SessionManager.getToken()
+                if (token.isNullOrEmpty()) return@withContext Result.failure(Exception("No hay sesión activa"))
+
+                val httpResponse = NetworkUtils.httpClient.put("${UrlConfig.BASE_URL}/canjes/$canjeId/actualizar-puntos/") {
+                    header("Authorization", "Bearer $token")
+                    contentType(ContentType.Application.Json)
+                    setBody(ActualizarPuntosRequest(puntos = puntos))
+                }
+
+                if (httpResponse.status.isSuccess()) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Error al actualizar los puntos."))
+                }
+            } catch (e: Exception) {
+                Result.failure(Exception("Error de conexión: ${e.message}"))
+            }
+        }
+    }
+
+    suspend fun actualizarEstadoCanje(canjeId: Int, isActive: Boolean): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val token = SessionManager.getToken()
+                if (token.isNullOrEmpty()) return@withContext Result.failure(Exception("No hay sesión activa"))
+
+                val httpResponse = NetworkUtils.httpClient.put("${UrlConfig.BASE_URL}/canjes/$canjeId/estado/") {
+                    header("Authorization", "Bearer $token")
+                    contentType(ContentType.Application.Json)
+                    setBody(ActualizarEstadoRequest(is_active = isActive))
+                }
+
+                if (httpResponse.status.isSuccess()) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Error al actualizar el estado."))
+                }
+            } catch (e: Exception) {
+                Result.failure(Exception("Error de conexión: ${e.message}"))
+            }
+        }
+    }
+
+    suspend fun crearCanje(canjeData: CrearCanjeRequest): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val token = SessionManager.getToken()
+                if (token.isNullOrEmpty()) return@withContext Result.failure(Exception("No hay sesión activa"))
+
+                val httpResponse = NetworkUtils.httpClient.post("${UrlConfig.BASE_URL}/canjes/crear/") {
+                    header("Authorization", "Bearer $token")
+                    contentType(ContentType.Application.Json)
+                    setBody(canjeData)
+                }
+
+                if (httpResponse.status.isSuccess()) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Error al crear el canje."))
+                }
+            } catch (e: Exception) {
+                Result.failure(Exception("Error de conexión: ${e.message}"))
             }
         }
     }

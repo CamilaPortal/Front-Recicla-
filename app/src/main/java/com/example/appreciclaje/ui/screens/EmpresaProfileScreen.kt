@@ -63,7 +63,8 @@ fun EmpresaProfileScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF4CAE50)
-                )
+                ),
+                windowInsets = WindowInsets(top = 0.dp)
             )
         },
         containerColor = Color.White
