@@ -26,12 +26,14 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.QrCode
@@ -42,15 +44,18 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.Color
 import com.example.appreciclaje.viewmodel.ScanState
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
 
+@OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalGetImage
 @Composable
-fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
+fun QrScannerScreen(
+    navController: NavController,
+    viewModel: QrScannerViewModel = viewModel()
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val scannedCode by viewModel.scannedCode.collectAsState()
     val scanState by viewModel.scanState.collectAsState()
 
     var hasCameraPermission by remember {
@@ -88,20 +93,18 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
             val options = BarcodeScannerOptions.Builder()
                 .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
                 .build()
-
             val scanner = BarcodeScanning.getClient(options)
-
             cameraController.setImageAnalysisAnalyzer(
                 ContextCompat.getMainExecutor(context),
                 ImageAnalysis.Analyzer { imageProxy ->
                     try {
                         val mediaImage = imageProxy.image
-                        if (mediaImage != null) {
+                        if (mediaImage != null && (scanState == ScanState.Idle || scanState == ScanState.Scanning)) {
                             val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
                             scanner.process(image)
                                 .addOnSuccessListener { barcodes ->
-                                    for (barcode in barcodes) {
-                                        barcode.rawValue?.let {
+                                    if (barcodes.isNotEmpty()) {
+                                        barcodes.first().rawValue?.let {
                                             viewModel.onCodeScanned(it)
                                         }
                                     }
@@ -124,98 +127,94 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text("Escanea un código QR", style = MaterialTheme.typography.titleLarge)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Escanear QR", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = Color.White)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF4CAE50)),
+                windowInsets = WindowInsets(top = 0.dp)
+            )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            if (hasCameraPermission) {
+                AndroidView(
+                    factory = { ctx ->
+                        PreviewView(ctx).apply {
+                            scaleType = PreviewView.ScaleType.FILL_CENTER
+                            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                            controller = cameraController
+                            cameraController.bindToLifecycle(lifecycleOwner)
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
 
-        Spacer(modifier = Modifier.height(40.dp))
-
-        if (hasCameraPermission) {
-            when (scanState) {
-                is ScanState.Idle, is ScanState.Scanning -> {
-                    AndroidView(
-                        factory = { ctx ->
-                            PreviewView(ctx).apply {
-                                scaleType = PreviewView.ScaleType.FILL_CENTER
-                                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                                controller = cameraController
-                                cameraController.bindToLifecycle(lifecycleOwner)
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(400.dp)
-                    )
-                }
-                is ScanState.TokenExtracted -> {
-                    val token = (scanState as ScanState.TokenExtracted).token
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                // Overlay UI based on state
+                when (val currentState = scanState) {
+                    is ScanState.TokenExtracted -> {
+                        val token = currentState.token
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Filled.QrCode,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(48.dp)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "¡Código QR escaneado!",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(text = "Token: $token")
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Button(
-                                    onClick = { viewModel.clearCode() },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.error
-                                    )
+                                Icon(
+                                    imageVector = Icons.Filled.QrCode,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "¡Código QR escaneado!",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(text = "Token: $token")
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
                                 ) {
-                                    Text("Cancelar")
-                                }
-                                Button(onClick = { viewModel.confirmScan() }) {
-                                    Text("Confirmar reciclaje")
+                                    Button(
+                                        onClick = { viewModel.clearCode() },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.error
+                                        )
+                                    ) {
+                                        Text("Cancelar")
+                                    }
+                                    Button(onClick = { viewModel.confirmScan() }) {
+                                        Text("Confirmar reciclaje")
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                is ScanState.Sending -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(400.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    is ScanState.Sending -> {
                         CircularProgressIndicator()
                     }
-                }
-                is ScanState.Success -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(400.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    is ScanState.Success -> {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(32.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column(
@@ -242,19 +241,12 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
                             }
                         }
                     }
-                }
-                is ScanState.Error -> {
-                    val errorMessage = (scanState as ScanState.Error).message
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(400.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    is ScanState.Error -> {
+                        val errorMessage = currentState.message
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(32.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column(
@@ -289,17 +281,19 @@ fun QrScannerScreen(viewModel: QrScannerViewModel = viewModel()) {
                             }
                         }
                     }
+                    else -> { /* Idle or Scanning, show nothing on top */ }
                 }
-            }
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(400.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Se requiere permiso de cámara para escanear códigos QR")
+            } else {
+                // Permission not granted view
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text("Se requiere permiso de cámara para escanear códigos QR", textAlign = TextAlign.Center)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }) {
                         Text("Solicitar permiso")

@@ -122,16 +122,16 @@ fun NavigationWrapper() {
                 EmpresaProfileScreen(navController = navController)
             }
             composable(AppScreens.Ranking.route) {
-                RankingHistoricoScreen()
+                RankingHistoricoScreen(navController = navController)
             }
             composable(AppScreens.QR.route) {
-                QrScannerScreen()
+                QrScannerScreen(navController = navController)
             }
             composable(AppScreens.Canjes.route) {
-                CanjesScreen()
+                CanjesScreen(navController = navController)
             }
             composable(AppScreens.Activity.route) {
-                ActivityScreen()
+                ActivityScreen(navController = navController)
             }
         }
     }

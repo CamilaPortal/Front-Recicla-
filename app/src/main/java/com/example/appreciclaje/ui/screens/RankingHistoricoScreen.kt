@@ -41,48 +41,73 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Recycling
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.unit.sp
 import com.example.appreciclaje.data.api.dto.MiPosicionHistoricaResponse
+import androidx.navigation.NavController
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.IconButton
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RankingHistoricoScreen(viewModel: RankingHistoricoViewModel = viewModel()) {
+fun RankingHistoricoScreen(
+    navController: NavController,
+    viewModel: RankingHistoricoViewModel = viewModel()
+) {
     val rankingState by viewModel.rankingState.collectAsState()
     val currentUserAlias by viewModel.currentUserAlias.collectAsState()
     val userPosition by viewModel.userPosition.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-    ) {
-        RankingHeader()
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Ranking histórico", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Atrás",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF4CAE50)
+                ),
+                windowInsets = WindowInsets(top = 0.dp)
+            )
+        },
+        containerColor = Color.White
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            RankingHeader()
 
-        when (rankingState) {
-            is RankingState.Loading -> LoadingState()
-            is RankingState.Success -> SuccessState(
-                ranking = (rankingState as RankingState.Success).ranking,
-                currentUserAlias = currentUserAlias,
-                userPosition = userPosition
-            )
-            is RankingState.Error -> ErrorState(
-                message = (rankingState as RankingState.Error).message
-            )
+            when (rankingState) {
+                is RankingState.Loading -> LoadingState()
+                is RankingState.Success -> SuccessState(
+                    ranking = (rankingState as RankingState.Success).ranking,
+                    currentUserAlias = currentUserAlias,
+                    userPosition = userPosition
+                )
+                is RankingState.Error -> ErrorState(
+                    message = (rankingState as RankingState.Error).message
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun RankingHeader() {
-    Text(
-        text = "Ranking Histórico",
-        style = MaterialTheme.typography.titleLarge.copy(fontSize = 28.sp),
-        fontWeight = FontWeight.Bold,
-        color = Color.Black
-    )
-
-    Spacer(modifier = Modifier.height(16.dp))
-
     Row(
         modifier = Modifier
             .fillMaxWidth()

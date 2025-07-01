@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,12 +20,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.appreciclaje.data.api.dto.CanjeDisponibleResponse
 import com.example.appreciclaje.viewmodel.CanjesViewModel
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CanjesScreen(viewModel: CanjesViewModel = viewModel()) {
+fun CanjesScreen(
+    navController: NavController,
+    viewModel: CanjesViewModel = viewModel()
+) {
     val canjes by viewModel.canjes.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.observeAsState(false)
     val error by viewModel.error.observeAsState(null)
@@ -43,6 +49,24 @@ fun CanjesScreen(viewModel: CanjesViewModel = viewModel()) {
     }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Canjes disponibles", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Atrás",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF4CAE50)
+                ),
+                windowInsets = WindowInsets(top = 0.dp)
+            )
+        },
         containerColor = Color.White,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
@@ -54,16 +78,7 @@ fun CanjesScreen(viewModel: CanjesViewModel = viewModel()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
             ) {
-                Text(
-                    text = "Canjes Disponibles",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
                 if (isLoading && canjes.isEmpty()) {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -77,6 +92,7 @@ fun CanjesScreen(viewModel: CanjesViewModel = viewModel()) {
                     )
                 } else {
                     LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(canjes) { canje ->

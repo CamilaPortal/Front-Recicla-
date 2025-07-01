@@ -63,7 +63,7 @@ object HistorialApi {
                     return@withContext Result.failure(Exception("No hay sesión activa"))
                 }
 
-                val httpResponse = NetworkUtils.httpClient.get("${UrlConfig.BASE_URL}/historial-canje/") {
+                val httpResponse = NetworkUtils.httpClient.get("${UrlConfig.BASE_URL}/reciclaje-app/historial/") {
                     header("Authorization", "Bearer $token")
                 }
 
