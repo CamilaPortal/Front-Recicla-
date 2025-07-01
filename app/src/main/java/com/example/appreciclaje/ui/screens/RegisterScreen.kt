@@ -78,7 +78,7 @@ fun RegisterContent(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Crear Cuenta", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("Crear Cuenta", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(24.dp))
 
             DniField(dni) { viewModel.onRegisterFieldsChanged(it, nombre, apellido, alias, telefono, email, password) }

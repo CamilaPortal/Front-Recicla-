@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -51,8 +53,8 @@ fun AdministrarCanjesScreen(
     if (showDialog) {
         CrearCanjeDialog(
             onDismiss = { showDialog = false },
-            onCreate = { nombre, descripcion, puntos ->
-                viewModel.crearCanje(nombre, descripcion, puntos)
+            onCreate = { nombre, descripcion, puntos, stock ->
+                viewModel.crearCanje(nombre, descripcion, puntos, stock)
                 showDialog = false
             }
         )
@@ -108,7 +110,8 @@ fun AdministrarCanjesScreen(
                         MiCanjeCard(
                             canje = canje,
                             onPointsChange = viewModel::actualizarPuntos,
-                            onStatusChange = viewModel::actualizarEstado
+                            onStatusChange = viewModel::actualizarEstado,
+                            onStockChange = viewModel::actualizarStock
                         )
                     }
                 }
@@ -120,11 +123,12 @@ fun AdministrarCanjesScreen(
 @Composable
 fun CrearCanjeDialog(
     onDismiss: () -> Unit,
-    onCreate: (String, String, Int) -> Unit
+    onCreate: (String, String, Int, Int) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var puntos by remember { mutableStateOf("") }
+    var stock by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -148,8 +152,14 @@ fun CrearCanjeDialog(
                     onValueChange = { puntos = it.filter { char -> char.isDigit() } },
                     label = { Text("Puntos") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    isError = isError
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = stock,
+                    onValueChange = { stock = it.filter { char -> char.isDigit() } },
+                    label = { Text("Stock Inicial") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -168,8 +178,9 @@ fun CrearCanjeDialog(
             Button(
                 onClick = {
                     val puntosInt = puntos.toIntOrNull()
-                    if (nombre.isNotBlank() && descripcion.isNotBlank() && puntosInt != null) {
-                        onCreate(nombre, descripcion, puntosInt)
+                    val stockInt = stock.toIntOrNull()
+                    if (nombre.isNotBlank() && descripcion.isNotBlank() && puntosInt != null && stockInt != null) {
+                        onCreate(nombre, descripcion, puntosInt, stockInt)
                         isError = false
                     } else {
                         isError = true
@@ -195,9 +206,11 @@ fun CrearCanjeDialog(
 fun MiCanjeCard(
     canje: CanjesEmpresaResponse,
     onPointsChange: (Int, Int) -> Unit,
-    onStatusChange: (Int, Boolean) -> Unit
+    onStatusChange: (Int, Boolean) -> Unit,
+    onStockChange: (Int, Int) -> Unit
 ) {
     var puntosText by remember(canje.puntos) { mutableStateOf(canje.puntos.toString()) }
+    var stockText by remember(canje.stock_actual) { mutableStateOf(canje.stock_actual.toString()) }
     val focusManager = LocalFocusManager.current
 
     Card(
@@ -251,15 +264,14 @@ fun MiCanjeCard(
                         value = puntosText,
                         onValueChange = { puntosText = it.filter { char -> char.isDigit() } },
                         label = { Text("Puntos") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier
-                            .width(100.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                        modifier = Modifier.width(100.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF4CAE50),
                             unfocusedBorderColor = Color.Gray,
                             cursorColor = Color(0xFF4CAE50),
                             focusedLabelColor = Color(0xFF4CAE50),
-                            unfocusedLabelColor = Color(0xFF4CAE50),
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black
                         ),
@@ -277,14 +289,9 @@ fun MiCanjeCard(
                         contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAE50))
                     ) {
-                        Icon(
-                            Icons.Default.Check,
-                            contentDescription = "Confirmar Puntos",
-                            tint = Color.White
-                        )
+                        Icon(Icons.Default.Check, contentDescription = "Confirmar Puntos", tint = Color.White)
                     }
                 }
-
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = if (canje.is_active) "Activo" else "Inactivo",
@@ -295,13 +302,55 @@ fun MiCanjeCard(
                     Switch(
                         checked = canje.is_active,
                         onCheckedChange = { onStatusChange(canje.id, it) },
+                        enabled = canje.stock_actual > 0,
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color(0xFF4CAE50),
-                            checkedTrackColor = Color(0xFF4CAE50).copy(alpha = 0.5f),
-                            uncheckedThumbColor = Color.Gray,
-                            uncheckedTrackColor = Color.Gray.copy(alpha = 0.5f)
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color(0xFF4CAE50),
+                            uncheckedThumbColor = Color.White,
+                            uncheckedTrackColor = Color.Gray,
+                            disabledCheckedThumbColor = Color.White.copy(alpha = 0.8f),
+                            disabledCheckedTrackColor = Color(0xFF4CAE50).copy(alpha = 0.5f),
+                            disabledUncheckedThumbColor = Color.White.copy(alpha = 0.8f),
+                            disabledUncheckedTrackColor = Color.Gray.copy(alpha = 0.5f)
                         )
                     )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = stockText,
+                    onValueChange = { stockText = it.filter { char -> char.isDigit() } },
+                    label = { Text("Stock") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                    modifier = Modifier.width(100.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF4CAE50),
+                        unfocusedBorderColor = Color.Gray,
+                        cursorColor = Color(0xFF4CAE50),
+                        focusedLabelColor = Color(0xFF4CAE50),
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    ),
+                    singleLine = true
+                )
+                Button(
+                    onClick = {
+                        val stockInt = stockText.toIntOrNull()
+                        if (stockInt != null && stockInt != canje.stock_actual) {
+                            onStockChange(canje.id, stockInt)
+                        }
+                        focusManager.clearFocus()
+                    },
+                    modifier = Modifier.height(56.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAE50))
+                ) {
+                    Icon(Icons.Default.Check, contentDescription = "Confirmar Stock", tint = Color.White)
                 }
             }
         }

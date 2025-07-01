@@ -11,3 +11,8 @@ data class ActualizarPuntosRequest(
 data class ActualizarEstadoRequest(
     val is_active: Boolean
 )
+
+@Serializable
+data class ActualizarStockRequest(
+    val nuevo_stock: Int
+)

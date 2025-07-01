@@ -10,5 +10,7 @@ data class CanjesEmpresaResponse(
     val puntos: Int,
     val empresa_id: Int,
     val empresa_nombre: String,
-    val is_active: Boolean
+    val is_active: Boolean,
+    val stock_inicial: Int,
+    val stock_actual: Int
 )

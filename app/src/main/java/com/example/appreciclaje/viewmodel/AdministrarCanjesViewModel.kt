@@ -67,27 +67,47 @@ class AdministrarCanjesViewModel : ViewModel() {
         }
     }
 
-    fun crearCanje(nombre: String, descripcion: String, puntos: Int) {
+    fun crearCanje(nombre: String, descripcion: String, puntos: Int, stockInicial: Int) {
         viewModelScope.launch {
-            val request = CrearCanjeRequest(nombre, descripcion, puntos)
+            val request = CrearCanjeRequest(nombre, descripcion, puntos, stock_inicial = stockInicial)
             val result = EmpresaApi.crearCanje(request)
             result.onSuccess {
                 _updateSuccess.emit("Canje creado correctamente")
-                loadMisCanjes() // Recargar la lista
+                loadMisCanjes()
             }.onFailure {
                 _error.value = it.message
             }
         }
     }
 
-    private fun updateLocalCanje(canjeId: Int, puntos: Int? = null, isActive: Boolean? = null) {
+    fun actualizarStock(canjeId: Int, nuevoStock: Int) {
+        viewModelScope.launch {
+            val canjeActual = _canjes.value?.find { it.id == canjeId } ?: return@launch
+
+            val result = EmpresaApi.actualizarStockCanje(canjeId, nuevoStock)
+            result.onSuccess {
+                val nuevoEstadoActivo = when {
+                    nuevoStock == 0 -> false
+                    nuevoStock > 0 && canjeActual.stock_actual == 0 -> true
+                    else -> null
+                }
+                updateLocalCanje(canjeId, stockActual = nuevoStock, isActive = nuevoEstadoActivo)
+                _updateSuccess.emit("Stock actualizado correctamente")
+            }.onFailure {
+                _error.value = it.message
+            }
+        }
+    }
+
+    private fun updateLocalCanje(canjeId: Int, puntos: Int? = null, isActive: Boolean? = null, stockActual: Int? = null) {
         val currentList = _canjes.value?.toMutableList() ?: return
         val index = currentList.indexOfFirst { it.id == canjeId }
         if (index != -1) {
             val canjeToUpdate = currentList[index]
             val updatedCanje = canjeToUpdate.copy(
                 puntos = puntos ?: canjeToUpdate.puntos,
-                is_active = isActive ?: canjeToUpdate.is_active
+                is_active = isActive ?: canjeToUpdate.is_active,
+                stock_actual = stockActual ?: canjeToUpdate.stock_actual
             )
             currentList[index] = updatedCanje
             _canjes.value = currentList

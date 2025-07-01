@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class CrearCanjeRequest(
     val nombre: String,
     val descripcion: String,
-    val puntos: Int
+    val puntos: Int,
+    val stock_inicial: Int
 )

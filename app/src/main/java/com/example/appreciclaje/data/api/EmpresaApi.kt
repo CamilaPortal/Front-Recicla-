@@ -3,6 +3,7 @@ package com.example.appreciclaje.data.api
 import android.util.Log
 import com.example.appreciclaje.data.api.dto.ActualizarEstadoRequest
 import com.example.appreciclaje.data.api.dto.ActualizarPuntosRequest
+import com.example.appreciclaje.data.api.dto.ActualizarStockRequest
 import com.example.appreciclaje.data.api.dto.ChangePasswordRequest
 import com.example.appreciclaje.data.api.dto.ConfirmarEntregaRequest
 import com.example.appreciclaje.data.api.dto.ConfirmarEntregaResponse
@@ -238,6 +239,29 @@ object EmpresaApi {
                     Result.success(Unit)
                 } else {
                     Result.failure(Exception("Error al crear el canje."))
+                }
+            } catch (e: Exception) {
+                Result.failure(Exception("Error de conexión: ${e.message}"))
+            }
+        }
+    }
+
+    suspend fun actualizarStockCanje(canjeId: Int, stock: Int): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val token = SessionManager.getToken()
+                if (token.isNullOrEmpty()) return@withContext Result.failure(Exception("No hay sesión activa"))
+
+                val httpResponse = NetworkUtils.httpClient.put("${UrlConfig.BASE_URL}/canjes/$canjeId/actualizar-stock/") {
+                    header("Authorization", "Bearer $token")
+                    contentType(ContentType.Application.Json)
+                    setBody(ActualizarStockRequest(nuevo_stock = stock))
+                }
+
+                if (httpResponse.status.isSuccess()) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Error al actualizar el stock."))
                 }
             } catch (e: Exception) {
                 Result.failure(Exception("Error de conexión: ${e.message}"))
