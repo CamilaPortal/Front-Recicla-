@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -84,29 +85,33 @@ fun AdministrarCanjesScreen(
         },
         containerColor = Color.White
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.loadMisCanjes() },
+            modifier = Modifier.padding(paddingValues),
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = Color(0xFF4CAE50)
-                )
+            if (isLoading && canjes.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color(0xFF4CAE50)
+                    )
+                }
             } else if (error != null) {
-                Text(
-                    text = "Error: $error",
-                    modifier = Modifier.align(Alignment.Center),
-                    color = Color.Red
-                )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text(
+                        text = "Error: $error",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color.Red
+                    )
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(canjes) { canje ->
+                    items(canjes, key = { it.id }) { canje ->
                         MiCanjeCard(
                             canje = canje,
                             onPointsChange = viewModel::actualizarPuntos,
@@ -217,31 +222,30 @@ fun MiCanjeCard(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = if (canje.is_active) Color(0xFFF0F0F0) else Color(0xFFE0E0E0))
+        colors = CardDefaults.cardColors(containerColor = if (canje.is_active) Color.White else Color(0xFFE0E0E0))
     ) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.CardGiftcard,
                     contentDescription = "Icono de canje",
                     tint = Color(0xFF4CAE50),
-                    modifier = Modifier
-                        .size(40.dp)
-                        .padding(end = 16.dp)
+                    modifier = Modifier.size(40.dp)
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = canje.nombre,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.Black,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
+                        color = Color.Black
                     )
                     Text(
                         text = canje.descripcion,
@@ -250,108 +254,83 @@ fun MiCanjeCard(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+
+            Divider()
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Puntos", style = MaterialTheme.typography.labelMedium, color = Color.Black)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        OutlinedTextField(
+                            value = puntosText,
+                            onValueChange = { puntosText = it.filter { char -> char.isDigit() } },
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                focusedBorderColor = Color(0xFF4CAE50),
+                                unfocusedBorderColor = Color.Gray,
+                                cursorColor = Color(0xFF4CAE50)
+                            )
+                        )
+                        IconButton(onClick = {
+                            puntosText.toIntOrNull()?.let { onPointsChange(canje.id, it) }
+                            focusManager.clearFocus()
+                        }) {
+                            Icon(Icons.Default.Check, contentDescription = "Guardar Puntos", tint = Color(0xFF4CAE50))
+                        }
+                    }
+                }
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Stock", style = MaterialTheme.typography.labelMedium, color = Color.Black)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        OutlinedTextField(
+                            value = stockText,
+                            onValueChange = { stockText = it.filter { char -> char.isDigit() } },
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                focusedBorderColor = Color(0xFF4CAE50),
+                                unfocusedBorderColor = Color.Gray,
+                                cursorColor = Color(0xFF4CAE50)
+                            )
+                        )
+                        IconButton(onClick = {
+                            stockText.toIntOrNull()?.let { onStockChange(canje.id, it) }
+                            focusManager.clearFocus()
+                        }) {
+                            Icon(Icons.Default.Check, contentDescription = "Guardar Stock", tint = Color(0xFF4CAE50))
+                        }
+                    }
+                }
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.End
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = puntosText,
-                        onValueChange = { puntosText = it.filter { char -> char.isDigit() } },
-                        label = { Text("Puntos") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                        modifier = Modifier.width(100.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF4CAE50),
-                            unfocusedBorderColor = Color.Gray,
-                            cursorColor = Color(0xFF4CAE50),
-                            focusedLabelColor = Color(0xFF4CAE50),
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black
-                        ),
-                        singleLine = true
+                Text("Activo", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.width(8.dp))
+                Switch(
+                    checked = canje.is_active,
+                    onCheckedChange = { onStatusChange(canje.id, it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = Color(0xFF4CAE50)
                     )
-                    Button(
-                        onClick = {
-                            val puntosInt = puntosText.toIntOrNull()
-                            if (puntosInt != null && puntosInt != canje.puntos) {
-                                onPointsChange(canje.id, puntosInt)
-                            }
-                            focusManager.clearFocus()
-                        },
-                        modifier = Modifier.height(56.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAE50))
-                    ) {
-                        Icon(Icons.Default.Check, contentDescription = "Confirmar Puntos", tint = Color.White)
-                    }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = if (canje.is_active) "Activo" else "Inactivo",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (canje.is_active) Color(0xFF4CAE50) else Color.Red
-                    )
-                    Switch(
-                        checked = canje.is_active,
-                        onCheckedChange = { onStatusChange(canje.id, it) },
-                        enabled = canje.stock_actual > 0,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = Color(0xFF4CAE50),
-                            uncheckedThumbColor = Color.White,
-                            uncheckedTrackColor = Color.Gray,
-                            disabledCheckedThumbColor = Color.White.copy(alpha = 0.8f),
-                            disabledCheckedTrackColor = Color(0xFF4CAE50).copy(alpha = 0.5f),
-                            disabledUncheckedThumbColor = Color.White.copy(alpha = 0.8f),
-                            disabledUncheckedTrackColor = Color.Gray.copy(alpha = 0.5f)
-                        )
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = stockText,
-                    onValueChange = { stockText = it.filter { char -> char.isDigit() } },
-                    label = { Text("Stock") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                    modifier = Modifier.width(100.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF4CAE50),
-                        unfocusedBorderColor = Color.Gray,
-                        cursorColor = Color(0xFF4CAE50),
-                        focusedLabelColor = Color(0xFF4CAE50),
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black
-                    ),
-                    singleLine = true
                 )
-                Button(
-                    onClick = {
-                        val stockInt = stockText.toIntOrNull()
-                        if (stockInt != null && stockInt != canje.stock_actual) {
-                            onStockChange(canje.id, stockInt)
-                        }
-                        focusManager.clearFocus()
-                    },
-                    modifier = Modifier.height(56.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAE50))
-                ) {
-                    Icon(Icons.Default.Check, contentDescription = "Confirmar Stock", tint = Color.White)
-                }
             }
         }
     }

@@ -33,13 +33,18 @@ class AdministrarCanjesViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
-            val result = EmpresaApi.getMisCanjes()
-            result.onSuccess {
-                _canjes.value = it
-            }.onFailure {
-                _error.value = it.message
+            try {
+                val result = EmpresaApi.getMisCanjes()
+                result.onSuccess {
+                    _canjes.value = it
+                }.onFailure {
+                    _error.value = it.message
+                }
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 
@@ -57,10 +62,21 @@ class AdministrarCanjesViewModel : ViewModel() {
 
     fun actualizarEstado(canjeId: Int, nuevoEstado: Boolean) {
         viewModelScope.launch {
-            val result = EmpresaApi.actualizarEstadoCanje(canjeId, nuevoEstado)
-            result.onSuccess {
-                updateLocalCanje(canjeId, isActive = nuevoEstado)
-                _updateSuccess.emit("Estado actualizado correctamente")
+            val resultEstado = EmpresaApi.actualizarEstadoCanje(canjeId, nuevoEstado)
+            resultEstado.onSuccess {
+                if (!nuevoEstado) {
+                    val resultStock = EmpresaApi.actualizarStockCanje(canjeId, 0)
+                    resultStock.onSuccess {
+                        updateLocalCanje(canjeId, isActive = false, stockActual = 0)
+                        _updateSuccess.emit("Canje desactivado y stock actualizado a 0")
+                    }.onFailure {
+                        updateLocalCanje(canjeId, isActive = nuevoEstado)
+                        _error.value = it.message
+                    }
+                } else {
+                    updateLocalCanje(canjeId, isActive = nuevoEstado)
+                    _updateSuccess.emit("Estado actualizado correctamente")
+                }
             }.onFailure {
                 _error.value = it.message
             }
