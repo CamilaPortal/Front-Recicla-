@@ -160,7 +160,6 @@ fun QrScannerScreen(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Overlay UI based on state
                 when (val currentState = scanState) {
                     is ScanState.TokenExtracted -> {
                         val token = currentState.token
@@ -284,7 +283,6 @@ fun QrScannerScreen(
                     else -> { /* Idle or Scanning, show nothing on top */ }
                 }
             } else {
-                // Permission not granted view
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier

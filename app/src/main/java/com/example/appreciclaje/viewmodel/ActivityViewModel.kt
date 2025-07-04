@@ -102,7 +102,7 @@ class ActivityViewModel : ViewModel() {
                         UserMovement(
                             id = reciclaje.id,
                             date = outputFormatter.format(date),
-                            description = "Reciclaje de ${reciclaje.cantidad_botellas} botellas",
+                            description = "Reciclaje: ${reciclaje.cantidad_botellas} botellas (${reciclaje.peso} g)",
                             points = reciclaje.puntos,
                             isPositive = true
                         )

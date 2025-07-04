@@ -7,7 +7,7 @@ data class ReciclajeHistorialResponse(
     val id: Int,
     val puntos: Int,
     val fecha_reciclaje: String,
-    val peso: Float,
+    val peso: Int,
     val cantidad_botellas: Int,
     val id_cesto: String
 )
